@@ -2,31 +2,39 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Build GLUT Project",
+            "label": "Build Crossy Road Project",
             "type": "shell",
             "command": "C:\\MinGW\\bin\\g++.exe",
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
-                "${file}",
+                // We list ALL .cpp files here instead of just "${file}"
+                "main.cpp",
+                "Game.cpp",
+                "Lane.cpp",
+                "Obstacle.cpp",
+                // Your specific libraries
                 "-lfreeglut",
                 "-lopengl32",
                 "-lglu32",
                 "-o",
-                "${fileDirname}\\${fileBasenameNoExtension}.exe"
+                // We hardcode the output name to "main.exe"
+                "${fileDirname}\\main.exe"
             ],
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
             "problemMatcher": ["$gcc"],
-            "detail": "Build GLUT project with FreeGLUT and OpenGL"
+            "detail": "Builds the multi-file Crossy Road project"
         },
         {
-            "label": "Run GLUT Project",
+            "label": "Run Crossy Road Project",
             "type": "shell",
-            "command": "${fileDirname}\\${fileBasenameNoExtension}.exe",
-            "dependsOn": "Build GLUT Project",
+            // We tell it to run "main.exe"
+            "command": "${fileDirname}\\main.exe",
+            // It must depend on the *new* build label
+            "dependsOn": "Build Crossy Road Project",
             "group": "none"
         }
     ]

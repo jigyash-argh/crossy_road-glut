@@ -1,30 +1,36 @@
 #pragma once
 
 #include <vector>
-#include "Obstacle.h" // We will create this next
+#include "Obstacle.h" // We need the Obstacle definition
 
 // Define the types of lanes we can have
 enum LaneType {
     LANE_GRASS,
     LANE_ROAD,
-    LANE_WATER // We can add this later!
+    LANE_WATER
 };
 
 class Lane {
 public:
-    // Constructor: Creates a lane of a specific type at a z-position
     Lane(LaneType type, int zPos);
-    
-    // Destructor: Cleans up the obstacles
     ~Lane();
 
     void draw();
-    void update(); // Updates all obstacles in this lane
+    void update();
+
+    // --- NEW: Public getter functions ---
+    int getZ() const { return zPosition; }
+    LaneType getLaneType() const { return type; }
+    
+    /**
+     * @brief Checks if the player at playerX collides with any obstacle
+     * @return true if collision, false if safe
+     */
+    bool checkCollision(float playerX);
 
 private:
     LaneType type;
     int zPosition;
 
-    // Each lane holds a list of its own obstacles
     std::vector<Obstacle*> obstacles;
 };
