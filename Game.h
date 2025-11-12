@@ -4,7 +4,6 @@
 #include <string>
 #include "Lane.h"
 
-// NEW: Define the states our game can be in
 enum GameState {
     STATE_MENU,      // The new start screen
     STATE_PLAYING,
@@ -15,10 +14,8 @@ enum GameState {
 // Game class manages all game state and logic
 class Game {
 public:
-    Game(); // Constructor
-    void init(); // One-time setup
-    
-    // GLUT Callbacks
+    Game(); 
+    void init();
     void display();
     void reshape(int w, int h);
     void keyboardSpecial(int key, int x, int y); // For arrow keys
@@ -40,11 +37,10 @@ private:
     void setupMenuCamera();
     void drawMenuScene();
 
-    // --- Game State ---
     int playerX;
     int playerZ;
     int score;
-    int maxZ; // Farthest Z player has reached
+    int maxZ;
 
     GameState currentState; // To track game state
 

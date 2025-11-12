@@ -25,7 +25,6 @@ Lane::Lane(LaneType type, int zPos) {
             }
         }
     }
-    // TODO: Add logic to create Logs for LANE_WATER
 }
 
 Lane::~Lane() {
@@ -39,11 +38,11 @@ void Lane::draw() {
     glPushMatrix();
     
     if (type == LANE_GRASS) {
-        glColor3f(0.0f, 0.6f, 0.2f); // Green
+        glColor3f(0.0f, 0.6f, 0.2f);
     } else if (type == LANE_ROAD) {
-        glColor3f(0.2f, 0.2f, 0.2f); // Dark Gray
+        glColor3f(0.2f, 0.2f, 0.2f);
     } else if (type == LANE_WATER) {
-        glColor3f(0.0f, 0.2f, 0.8f); // Blue
+        glColor3f(0.0f, 0.2f, 0.8f);
     }
 
     glBegin(GL_QUADS);
@@ -67,29 +66,20 @@ void Lane::update() {
     }
 }
 
-/**
- * @brief NEW: AABB Collision Check
- * Checks if the player (at playerX) overlaps with any obstacle
- */
 bool Lane::checkCollision(float playerX) {
-    // Player's bounding box
     float playerMinX = playerX - 0.5f;
     float playerMaxX = playerX + 0.5f;
 
     for (Obstacle* obs : obstacles) {
-        // Obstacle's bounding box
+
         float obsX = obs->getX();
         float obsWidth = obs->getWidth();
         float obsMinX = obsX - obsWidth / 2.0f;
         float obsMaxX = obsX + obsWidth / 2.0f;
-
-        // AABB check:
-        // Return true if they overlap
         if (playerMaxX > obsMinX && playerMinX < obsMaxX) {
-            return true; // Collision!
+            return true; 
         }
     }
 
-    // No collision found with any obstacle in this lane
     return false;
 }
