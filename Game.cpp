@@ -5,33 +5,23 @@
 #include <string>       
 #include <sstream>      
 
-// --- Constants ---
 const int STARTING_LANES = 10;
 const int LANES_AHEAD = 15;     
 const int LANES_BEHIND = 5;      
 
-/**
- * @brief MODIFIED: Constructor
- * Calls init() to set up variables, then sets the state to MENU.
- */
 Game::Game() {
-    init(); // Set up all variables
-    currentState = STATE_MENU; // Start at the menu
+    init(); 
+    currentState = STATE_MENU;
 }
 
-/**
- * @brief MODIFIED: init()
- * This function just resets the game's variables.
- * It NO LONGER sets the game state.
- */
+
 void Game::init() {
-    // --- Clean up old lanes (for restarting) ---
+
     for (Lane* lane : lanes) {
         delete lane;
     }
     lanes.clear();
 
-    // --- Reset Game State ---
     playerX = 0;
     playerZ = 0;
     score = 0;
@@ -369,30 +359,25 @@ void Game::drawHUD() {
     }
 }
 
-/**
- * @brief Helper function to draw 2D text
- */
 void Game::drawText(std::string text, float x, float y, void* font) {
-    // --- Switch to 2D Orthographic Mode ---
+
     glDisable(GL_LIGHTING);
     glDisable(GL_DEPTH_TEST);
     
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
-    gluOrtho2D(0.0, 1024.0, 768.0, 0.0); // Match window size
+    gluOrtho2D(0.0, 1024.0, 768.0, 0.0); 
 
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
 
-    // --- Draw The Text ---
     glRasterPos2f(x, y);
     for (char c : text) {
         glutBitmapCharacter(font, c);
     }
 
-    // --- Restore 3D Mode ---
     glPopMatrix();
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
