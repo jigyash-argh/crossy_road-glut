@@ -1,11 +1,12 @@
 #pragma once
 
-#include <deque> // Use deque instead of vector
+#include <deque> 
 #include <string>
 #include "Lane.h"
 
 // NEW: Define the states our game can be in
 enum GameState {
+    STATE_MENU,      // The new start screen
     STATE_PLAYING,
     STATE_PAUSED,
     STATE_GAME_OVER
@@ -35,13 +36,17 @@ private:
     void drawHUD();     // For drawing score and messages
     void drawText(std::string text, float x, float y, void* font);
 
+    // --- NEW: Menu-specific functions ---
+    void setupMenuCamera();
+    void drawMenuScene();
+
     // --- Game State ---
     int playerX;
     int playerZ;
     int score;
     int maxZ; // Farthest Z player has reached
 
-    GameState currentState; // NEW: To track game state
+    GameState currentState; // To track game state
 
     float cameraY;
     float cameraZ_offset;

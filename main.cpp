@@ -1,18 +1,3 @@
-/**
- * Crossy Road - Full Game
- *
- * This is the main entry point. It creates the Game object
- * and forwards all GLUT callbacks to it.
- *
- * --- Controls ---
- * Arrow Keys:  Move player (only when playing)
- * 'p':         Toggle Pause/Play
- * 'r':         Restart game (only when Paused or Game Over)
- *
- * --- How to Compile (Multi-File) ---
- * g++ -o main main.cpp Game.cpp Lane.cpp Obstacle.cpp -lglut -lGLU -lGL
- * (Or just use Ctrl+Shift+B with the tasks.json)
- */
 
 #include <GL/glut.h>
 #include "Game.h"
