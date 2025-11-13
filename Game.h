@@ -5,13 +5,12 @@
 #include "Lane.h"
 
 enum GameState {
-    STATE_MENU,      // The new start screen
+    STATE_MENU,      
     STATE_PLAYING,
     STATE_PAUSED,
     STATE_GAME_OVER
 };
 
-// Game class manages all game state and logic
 class Game {
 public:
     Game(); 
@@ -20,20 +19,18 @@ public:
     void reshape(int w, int h);
     void keyboardSpecial(int key, int x, int y); // For arrow keys
     void keyboardAscii(unsigned char key, int x, int y); // For 'p', 'r'
-    void update(); // Main game loop
+    void update(); 
 
 private:
     void drawPlayer();
     void setupCamera();
 
-    // --- NEW: Game Logic Functions ---
     void restart();
     void checkCollisions();
     void updateWorld(); // For procedural generation
     void drawHUD();     // For drawing score and messages
     void drawText(std::string text, float x, float y, void* font);
 
-    // --- NEW: Menu-specific functions ---
     void setupMenuCamera();
     void drawMenuScene();
 
@@ -42,11 +39,10 @@ private:
     int score;
     int maxZ;
 
-    GameState currentState; // To track game state
+    GameState currentState;
 
     float cameraY;
     float cameraZ_offset;
 
-    // Use a deque for efficient adding/removing from both ends
     std::deque<Lane*> lanes;
 };

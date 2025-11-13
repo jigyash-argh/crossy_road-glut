@@ -31,10 +31,8 @@ int main(int argc, char** argv) {
     glutInitWindowSize(1024, 768); // Made window a bit bigger
     glutCreateWindow("Crossy Road - Full Game");
 
-    // 2. Call our one-time init function
     myGame.init();
 
-    // 3. Register our callback functions
     glutDisplayFunc(displayWrapper);
     glutReshapeFunc(reshapeWrapper);
     glutSpecialFunc(keyboardSpecialWrapper); // For arrow keys
