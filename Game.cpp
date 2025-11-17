@@ -5,28 +5,41 @@
 #include <string>       
 #include <sstream>      
 
+// --- Constants ---
 const int STARTING_LANES = 10;
 const int LANES_AHEAD = 15;     
 const int LANES_BEHIND = 5;      
 
+/**
+ * @brief MODIFIED: Constructor
+ * Initializes new difficulty variables.
+ */
 Game::Game() {
-    init(); 
-    currentState = STATE_MENU;
+    // --- NEW ---
+    selectedDifficulty = 0; // 0=Easy, 1=Medium, 2=Hard
+    difficultyMultiplier = 1.0f; // Default to Easy
+    // --- ---
+
+    init(); // Set up all variables
+    currentState = STATE_MENU; // Start at the menu
 }
 
-
+/**
+ * @brief MODIFIED: init()
+ * Now uses the 'difficultyMultiplier' when creating the starting lanes.
+ */
 void Game::init() {
-
+    // --- Clean up old lanes (for restarting) ---
     for (Lane* lane : lanes) {
         delete lane;
     }
     lanes.clear();
 
+    // --- Reset Game State ---
     playerX = 0;
     playerZ = 0;
     score = 0;
     maxZ = 0;
-    // currentState = STATE_PLAYING; // <-- THIS LINE IS REMOVED
     cameraY = 10.0f;
     cameraZ_offset = 5.0f;
 
@@ -46,13 +59,15 @@ void Game::init() {
     // --- Create the starting world ---
     // Start with a safe grass zone
     for (int z = 1; z >= -STARTING_LANES; z--) {
-        lanes.push_back(new Lane(LANE_GRASS, z));
+        // --- MODIFIED: Pass the multiplier ---
+        lanes.push_back(new Lane(LANE_GRASS, z, difficultyMultiplier));
     }
     
     // Add the first few random lanes
     for (int z = -STARTING_LANES - 1; z > -LANES_AHEAD; z--) {
         LaneType type = (rand() % 3 == 0) ? LANE_GRASS : LANE_ROAD;
-        lanes.push_front(new Lane(type, z));
+        // --- MODIFIED: Pass the multiplier ---
+        lanes.push_front(new Lane(type, z, difficultyMultiplier));
     }
 }
 
@@ -62,7 +77,7 @@ void Game::init() {
  * It calls init() and then sets the state to PLAYING.
  */
 void Game::restart() {
-    init(); // Reset all variables
+    init(); // Reset all variables (will use the chosen multiplier)
     currentState = STATE_PLAYING; // Set the state to playing
 }
 
@@ -74,10 +89,6 @@ void Game::setupCamera() {
     );
 }
 
-/**
- * @brief NEW: setupMenuCamera()
- * Sets up a static camera for the main menu, looking at the origin.
- */
 void Game::setupMenuCamera() {
     gluLookAt(
         -4.0f, 6.0f, 6.0f,  // Eye position (from the side)
@@ -86,11 +97,6 @@ void Game::setupMenuCamera() {
     );
 }
 
-/**
- * @brief MODIFIED: display()
- * Now checks the state. If on menu, draws the menu.
- * Otherwise, draws the game.
- */
 void Game::display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -113,7 +119,8 @@ void Game::display() {
         // Draw the player
         drawPlayer();
     }
-
+    
+    // Draw the Score, Pause, and Game Over messages
     drawHUD();
 
     glutSwapBuffers();
@@ -127,45 +134,71 @@ void Game::reshape(int w, int h) {
     glMatrixMode(GL_MODELVIEW);
 }
 
+/**
+ * @brief MODIFIED: keyboardSpecial()
+ * Now handles Up/Down arrows in the MENU state to change difficulty.
+ * Handles player movement in the PLAYING state.
+ */
 void Game::keyboardSpecial(int key, int x, int y) {
-    // --- Player can only move if the game is in PLAYING state ---
-    if (currentState != STATE_PLAYING) {
-        return;
-    }
+    
+    if (currentState == STATE_MENU) {
+        // --- NEW: Handle menu selection ---
+        switch (key) {
+        case GLUT_KEY_UP:
+            selectedDifficulty--;
+            if (selectedDifficulty < 0) selectedDifficulty = 2;
+            break;
+        case GLUT_KEY_DOWN:
+            selectedDifficulty++;
+            if (selectedDifficulty > 2) selectedDifficulty = 0;
+            break;
+        }
 
-    switch (key) {
-    case GLUT_KEY_UP:
-        playerZ--;
-        break;
-    case GLUT_KEY_DOWN:
-        playerZ++;
-        break;
-    case GLUT_KEY_LEFT:
-        playerX--;
-        break;
-    case GLUT_KEY_RIGHT:
-        playerX++;
-        break;
-    }
+    } else if (currentState == STATE_PLAYING) {
+        // --- Player Movement ---
+        switch (key) {
+        case GLUT_KEY_UP:
+            playerZ--;
+            break;
+        case GLUT_KEY_DOWN:
+            playerZ++;
+            break;
+        case GLUT_KEY_LEFT:
+            playerX--;
+            break;
+        case GLUT_KEY_RIGHT:
+            playerX++;
+            break;
+        }
 
-    // --- Update Score ---
-    // Score is the farthest (most negative) Z value reached
-    if (playerZ < maxZ) {
-        maxZ = playerZ;
-        score = abs(maxZ);
+        // --- Update Score ---
+        if (playerZ < maxZ) {
+            maxZ = playerZ;
+            score = abs(maxZ);
+        }
     }
 }
 
 /**
  * @brief MODIFIED: keyboardAscii()
- * Added 'Spacebar' (32) and 'Enter' (13) to start the game
- * from the menu.
+ * When 'Space' or 'Enter' is pressed on the menu,
+ * it now SETS the multiplier before starting the game.
  */
 void Game::keyboardAscii(unsigned char key, int x, int y) {
     switch (key) {
     case ' ':  // Spacebar
     case 13:   // Enter key
         if (currentState == STATE_MENU) {
+            
+            // --- NEW: Set the multiplier based on selection ---
+            if (selectedDifficulty == 0) { // Easy
+                difficultyMultiplier = 1.0f;
+            } else if (selectedDifficulty == 1) { // Medium
+                difficultyMultiplier = 1.5f;
+            } else { // Hard
+                difficultyMultiplier = 2.0f;
+            }
+            
             restart(); // This starts the game
         }
         break;
@@ -183,6 +216,9 @@ void Game::keyboardAscii(unsigned char key, int x, int y) {
     case 'R':
         // Can only restart if paused or game is over
         if (currentState == STATE_PAUSED || currentState == STATE_GAME_OVER) {
+            // --- NEW: Reset difficulty to the one you chose ---
+            // (This is subtle, if we just call restart()
+            // it will use the already-set multiplier)
             restart();
         }
         break;
@@ -194,7 +230,9 @@ void Game::keyboardAscii(unsigned char key, int x, int y) {
 }
 
 void Game::update() {
-
+    // --- This is the main game loop ---
+    
+    // Only update animations and logic if the game is PLAYING
     if (currentState == STATE_PLAYING) {
         // 1. Update all lanes (which updates all obstacles)
         for (Lane* lane : lanes) {
@@ -231,6 +269,10 @@ void Game::checkCollisions() {
     }
 }
 
+/**
+ * @brief MODIFIED: updateWorld()
+ * Now passes the 'difficultyMultiplier' when creating new lanes.
+ */
 void Game::updateWorld() {
     // --- Procedural Generation ---
     
@@ -238,7 +280,9 @@ void Game::updateWorld() {
     while (playerZ < lanes.front()->getZ() + LANES_AHEAD) {
         int newZ = lanes.front()->getZ() - 1;
         LaneType type = (rand() % 3 == 0) ? LANE_GRASS : LANE_ROAD;
-        lanes.push_front(new Lane(type, newZ));
+        
+        // --- MODIFIED: Pass the multiplier ---
+        lanes.push_front(new Lane(type, newZ, difficultyMultiplier));
     }
 
     // 2. Remove old lanes from behind
@@ -265,10 +309,6 @@ void Game::drawPlayer() {
     glPopMatrix();
 }
 
-/**
- * @brief NEW: drawMenuScene()
- * Draws the simple 3D scene for the main menu.
- */
 void Game::drawMenuScene() {
     // 1. Draw a ground (grass)
     glPushMatrix();
@@ -309,7 +349,7 @@ void Game::drawMenuScene() {
 
 /**
  * @brief MODIFIED: drawHUD()
- * Now includes a state for STATE_MENU to draw the title
+ * Now draws the difficulty selection on the main menu.
  */
 void Game::drawHUD() {
     // --- Build Score String ---
@@ -340,40 +380,64 @@ void Game::drawHUD() {
         drawText("Press 'R' to restart", 410.0f, 350.0f, GLUT_BITMAP_HELVETICA_18);
     }
     else if (currentState == STATE_MENU) {
-        // --- NEW: Draw the Main Menu ---
+        // --- NEW: Draw the Main Menu with Difficulty ---
         glColor3f(1.0f, 1.0f, 1.0f); // White
         drawText("CROSSY ROAD", 400.0f, 200.0f, GLUT_BITMAP_TIMES_ROMAN_24);
         
+        // --- Draw Difficulty Options ---
+        glColor3f(0.8f, 0.8f, 0.8f);
+        drawText("Use Arrow Keys to Select Difficulty:", 350.0f, 280.0f, GLUT_BITMAP_HELVETICA_18);
+
+        // Draw "Easy"
+        if (selectedDifficulty == 0) glColor3f(1.0f, 1.0f, 0.0f); // Yellow
+        else glColor3f(1.0f, 1.0f, 1.0f); // White
+        drawText("EASY", 460.0f, 320.0f, GLUT_BITMAP_HELVETICA_18);
+
+        // Draw "Medium"
+        if (selectedDifficulty == 1) glColor3f(1.0f, 1.0f, 0.0f); // Yellow
+        else glColor3f(1.0f, 1.0f, 1.0f); // White
+        drawText("MEDIUM", 460.0f, 350.0f, GLUT_BITMAP_HELVETICA_18);
+
+        // Draw "Hard"
+        if (selectedDifficulty == 2) glColor3f(1.0f, 1.0f, 0.0f); // Yellow
+        else glColor3f(1.0f, 1.0f, 1.0f); // White
+        drawText("HARD", 460.0f, 380.0f, GLUT_BITMAP_HELVETICA_18);
+
+        // --- Draw Start Prompt ---
         glColor3f(1.0f, 1.0f, 0.0f); // Yellow
-        drawText("Press 'Space' or 'Enter' to Start", 350.0f, 400.0f, GLUT_BITMAP_HELVETICA_18);
+        drawText("Press 'Space' or 'Enter' to Start", 350.0f, 450.0f, GLUT_BITMAP_HELVETICA_18);
         
+        // --- Draw Controls ---
         glColor3f(0.8f, 0.8f, 0.8f); // Light gray
-        drawText("--- Controls ---", 430.0f, 450.0f, GLUT_BITMAP_HELVETICA_18);
-        drawText("Arrow Keys: Move", 430.0f, 470.0f, GLUT_BITMAP_HELVETICA_18);
-        drawText("P: Pause", 430.0f, 490.0f, GLUT_BITMAP_HELVETICA_18);
-        drawText("R: Restart (when paused/game over)", 350.0f, 510.0f, GLUT_BITMAP_HELVETICA_18);
+        drawText("P: Pause", 450.0f, 500.0f, GLUT_BITMAP_HELVETICA_18);
+        drawText("R: Restart", 450.0f, 520.0f, GLUT_BITMAP_HELVETICA_18);
     }
 }
 
+/**
+ * @brief Helper function to draw 2D text
+ */
 void Game::drawText(std::string text, float x, float y, void* font) {
-
+    // --- Switch to 2D Orthographic Mode ---
     glDisable(GL_LIGHTING);
     glDisable(GL_DEPTH_TEST);
     
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
-    gluOrtho2D(0.0, 1024.0, 768.0, 0.0); 
+    gluOrtho2D(0.0, 1024.0, 768.0, 0.0); // Match window size
 
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
 
+    // --- Draw The Text ---
     glRasterPos2f(x, y);
     for (char c : text) {
         glutBitmapCharacter(font, c);
     }
 
+    // --- Restore 3D Mode ---
     glPopMatrix();
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();

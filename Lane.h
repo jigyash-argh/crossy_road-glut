@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include "Obstacle.h" // We need the Obstacle definition
+#include "Obstacle.h" 
 
 // Define the types of lanes we can have
 enum LaneType {
@@ -12,13 +12,14 @@ enum LaneType {
 
 class Lane {
 public:
-    Lane(LaneType type, int zPos);
+    // --- MODIFIED: Constructor now takes a speed multiplier ---
+    Lane(LaneType type, int zPos, float speedMultiplier);
     ~Lane();
 
     void draw();
     void update();
 
-    // --- NEW: Public getter functions ---
+    // --- Public getter functions ---
     int getZ() const { return zPosition; }
     LaneType getLaneType() const { return type; }
     
