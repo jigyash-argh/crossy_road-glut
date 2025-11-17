@@ -113,9 +113,7 @@ void Game::display() {
         // Draw the player
         drawPlayer();
     }
-    
-    // Draw the Score, Pause, and Game Over messages
-    // This is called in all states
+
     drawHUD();
 
     glutSwapBuffers();
