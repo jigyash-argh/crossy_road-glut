@@ -113,9 +113,7 @@ void Game::display() {
         // Draw the player
         drawPlayer();
     }
-    
-    // Draw the Score, Pause, and Game Over messages
-    // This is called in all states
+
     drawHUD();
 
     glutSwapBuffers();
@@ -196,9 +194,7 @@ void Game::keyboardAscii(unsigned char key, int x, int y) {
 }
 
 void Game::update() {
-    // --- This is the main game loop ---
-    
-    // Only update animations and logic if the game is PLAYING
+
     if (currentState == STATE_PLAYING) {
         // 1. Update all lanes (which updates all obstacles)
         for (Lane* lane : lanes) {
