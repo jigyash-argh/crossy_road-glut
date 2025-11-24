@@ -1,9 +1,9 @@
 #include "Lane.h"
 #include "Vehicle.h"
+#include "Constants.h"
 #include <GL/glut.h>
 #include <cstdlib>
-
-const float LANE_WIDTH = 20.0f;
+#include <cmath>
 
 /**
  * @brief MODIFIED: Constructor implementation
@@ -94,6 +94,29 @@ void Lane::draw() {
         }
     }
 
+    // Draw dashed white stripes for road lanes
+    if (type == LANE_ROAD) {
+        glPushMatrix();
+        // Slightly raise the stripes to avoid z-fighting
+        float stripeY = 0.011f;
+        float stripeZStart = (float)zPosition + 0.4f;
+        float stripeZEnd = (float)zPosition + 0.6f;
+        glColor3f(1.0f, 1.0f, 1.0f);
+        // Draw short dashes across X every ~3 units
+        float dashLength = 1.0f;
+        float gap = 2.0f;
+        for (float sx = -LANE_WIDTH + 0.5f; sx < LANE_WIDTH; sx += (dashLength + gap)) {
+            glBegin(GL_QUADS);
+                glNormal3f(0.0f, 1.0f, 0.0f);
+                glVertex3f(sx - dashLength*0.5f, stripeY, stripeZStart);
+                glVertex3f(sx + dashLength*0.5f, stripeY, stripeZStart);
+                glVertex3f(sx + dashLength*0.5f, stripeY, stripeZEnd);
+                glVertex3f(sx - dashLength*0.5f, stripeY, stripeZEnd);
+            glEnd();
+        }
+        glPopMatrix();
+    }
+
     for (Obstacle* obs : obstacles) {
         obs->draw();
     }
@@ -110,12 +133,22 @@ void Lane::update() {
  */
 bool Lane::checkCollision(float playerX) {
     // Player's bounding box
-    float playerMinX = playerX - 0.5f;
-    float playerMaxX = playerX + 0.5f;
+    // Map playerX into the same [-WORLD_HALF_WIDTH, WORLD_HALF_WIDTH) range
+    float period = WORLD_HALF_WIDTH * 2.0f;
+    float wrappedPlayerX = fmod(playerX + WORLD_HALF_WIDTH, period);
+    if (wrappedPlayerX < 0) wrappedPlayerX += period;
+    wrappedPlayerX -= WORLD_HALF_WIDTH;
+
+    float playerMinX = wrappedPlayerX - 0.5f;
+    float playerMaxX = wrappedPlayerX + 0.5f;
 
     for (Obstacle* obs : obstacles) {
         // Obstacle's bounding box
         float obsX = obs->getX();
+        // Ensure obsX is in [-WORLD_HALF_WIDTH, WORLD_HALF_WIDTH)
+        // (They are already stored in that range but keep for clarity)
+        if (obsX > WORLD_HALF_WIDTH) obsX -= period;
+        if (obsX < -WORLD_HALF_WIDTH) obsX += period;
         float obsWidth = obs->getWidth();
         float obsMinX = obsX - obsWidth / 2.0f;
         float obsMaxX = obsX + obsWidth / 2.0f;

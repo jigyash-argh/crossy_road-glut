@@ -1,9 +1,11 @@
 #include "Game.h"
+#include "Constants.h"
 #include <GL/glut.h>
-#include <cstdlib>      
-#include <ctime>        
-#include <string>       
-#include <sstream>      
+#include <cstdlib>
+#include <ctime>
+#include <string>
+#include <sstream>
+#include <cmath>
 
 // --- Constants ---
 const int STARTING_LANES = 10;
@@ -82,9 +84,15 @@ void Game::restart() {
 }
 
 void Game::setupCamera() {
+    // Wrap playerX into world range so camera stays on the repeated world
+    float period = WORLD_HALF_WIDTH * 2.0f;
+    float wrappedPlayerX = fmod(playerX + WORLD_HALF_WIDTH, period);
+    if (wrappedPlayerX < 0) wrappedPlayerX += period;
+    wrappedPlayerX -= WORLD_HALF_WIDTH;
+
     gluLookAt(
-        (float)playerX, cameraY, (float)playerZ + cameraZ_offset,
-        (float)playerX, 0.0, (float)playerZ,
+        wrappedPlayerX, cameraY, (float)playerZ + cameraZ_offset,
+        wrappedPlayerX, 0.0, (float)playerZ,
         0.0, 1.0, 0.0
     );
 }
@@ -293,19 +301,75 @@ void Game::updateWorld() {
 }
 
 void Game::drawPlayer() {
-    glPushMatrix();
-    
-    // If game is over, make player flat and red
+    // Draw a more detailed player composed of simple primitives
+    float period = WORLD_HALF_WIDTH * 2.0f;
+    float wrappedPlayerX = fmod(playerX + WORLD_HALF_WIDTH, period);
+    if (wrappedPlayerX < 0) wrappedPlayerX += period;
+    wrappedPlayerX -= WORLD_HALF_WIDTH;
+
+    // Game over: flattened
     if (currentState == STATE_GAME_OVER) {
-        glColor3f(1.0f, 0.0f, 0.0f); // Red
-        glTranslatef((float)playerX, 0.01f, (float)playerZ + 0.5f);
-        glScalef(1.0f, 0.02f, 1.0f); // Flatten!
-    } else {
-        glColor3f(1.0f, 1.0f, 0.0f); // Yellow
-        glTranslatef((float)playerX, 0.5f, (float)playerZ + 0.5f);
+        glPushMatrix();
+        glColor3f(1.0f, 0.0f, 0.0f);
+        glTranslatef(wrappedPlayerX, 0.01f, (float)playerZ + 0.5f);
+        glScalef(1.0f, 0.02f, 1.0f);
+        glutSolidCube(1.0f);
+        glPopMatrix();
+        return;
     }
-    
+
+    // Normal player model
+    glPushMatrix();
+    glTranslatef(wrappedPlayerX, 0.0f, (float)playerZ + 0.5f);
+
+    // Body (rounded cube)
+    glPushMatrix();
+    glTranslatef(0.0f, 0.45f, 0.0f);
+    glColor3f(1.0f, 0.85f, 0.0f); // Warm yellow
+    glScalef(0.9f, 0.6f, 0.9f);
     glutSolidCube(1.0f);
+    glPopMatrix();
+
+    // Head
+    glPushMatrix();
+    glTranslatef(0.0f, 0.95f, 0.0f);
+    glColor3f(1.0f, 0.9f, 0.7f); // Skin tone
+    glutSolidSphere(0.28f, 12, 12);
+
+    // Eyes
+    glPushMatrix();
+    glColor3f(0.02f, 0.02f, 0.02f);
+    glTranslatef(-0.09f, 0.02f, 0.25f);
+    glutSolidSphere(0.04f, 8, 8);
+    glPopMatrix();
+
+    glPushMatrix();
+    glColor3f(0.02f, 0.02f, 0.02f);
+    glTranslatef(0.09f, 0.02f, 0.25f);
+    glutSolidSphere(0.04f, 8, 8);
+    glPopMatrix();
+
+    glPopMatrix();
+
+    // Legs (simple blocks)
+    glPushMatrix();
+    glTranslatef(-0.18f, 0.15f, 0.0f);
+    glColor3f(0.2f, 0.2f, 0.7f); // Pants
+    glPushMatrix();
+    glScalef(0.25f, 0.3f, 0.4f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    glPopMatrix();
+
+    glPushMatrix();
+    glTranslatef(0.18f, 0.15f, 0.0f);
+    glColor3f(0.2f, 0.2f, 0.7f);
+    glPushMatrix();
+    glScalef(0.25f, 0.3f, 0.4f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    glPopMatrix();
+
     glPopMatrix();
 }
 
