@@ -33,6 +33,14 @@ Lane::Lane(LaneType type, int zPos, float speedMultiplier) {
             }
         }
     }
+    else if (this->type == LANE_GRASS) {
+        // Create a few decorative trees to make the grass lanes look nicer
+        int numTrees = (rand() % 4) + 1; // 1..4 trees
+        for (int i = 0; i < numTrees; ++i) {
+            float tx = (float)(rand() % (int)(LANE_WIDTH * 2)) - LANE_WIDTH;
+            treePositions.push_back(tx);
+        }
+    }
     // TODO: Add logic to create Logs for LANE_WATER
 }
 
@@ -63,6 +71,28 @@ void Lane::draw() {
     glEnd();
     
     glPopMatrix();
+
+    // Draw decorative trees for grass lanes
+    if (type == LANE_GRASS) {
+        for (float tx : treePositions) {
+            glPushMatrix();
+            // Trunk
+            glTranslatef(tx, 0.5f, (float)zPosition + 0.5f);
+            glColor3f(0.45f, 0.25f, 0.07f); // Brown trunk
+            glPushMatrix();
+            glScalef(0.2f, 1.0f, 0.2f);
+            glutSolidCube(1.0f);
+            glPopMatrix();
+
+            // Foliage (cone)
+            glTranslatef(0.0f, 0.9f, 0.0f);
+            glColor3f(0.0f, 0.5f, 0.15f);
+            // Use cone for a tree-like shape
+            glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+            glutSolidCone(0.6f, 1.0f, 8, 8);
+            glPopMatrix();
+        }
+    }
 
     for (Obstacle* obs : obstacles) {
         obs->draw();

@@ -1,7 +1,6 @@
 #include "Obstacle.h"
-
-// Width of the world
-const float WORLD_WIDTH = 20.0f;
+#include "Constants.h"
+#include <cmath>
 
 void Obstacle::update() {
     // Move the obstacle based on its speed
@@ -10,10 +9,10 @@ void Obstacle::update() {
 
     // --- Wrap around logic ---
     // If obstacle goes off one side, move it to the other
-    if (xPos > WORLD_WIDTH + width && speed > 0) {
-        xPos = -WORLD_WIDTH - width;
+    if (xPos > WORLD_HALF_WIDTH + width && speed > 0) {
+        xPos = -WORLD_HALF_WIDTH - width;
     }
-    else if (xPos < -WORLD_WIDTH - width && speed < 0) {
-        xPos = WORLD_WIDTH + width;
+    else if (xPos < -WORLD_HALF_WIDTH - width && speed < 0) {
+        xPos = WORLD_HALF_WIDTH + width;
     }
 }

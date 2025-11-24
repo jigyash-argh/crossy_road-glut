@@ -34,4 +34,6 @@ private:
     int zPosition;
 
     std::vector<Obstacle*> obstacles;
+    // Positions for decorative trees on grass lanes
+    std::vector<float> treePositions;
 };
